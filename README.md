@@ -37,13 +37,10 @@ A Chrome Extension + Google Sheets automation that captures job applications as 
 
 ### Step 1 — Set up Google Sheets
 
-1. Create a new Google Sheet
-2. Rename Sheet 1 to `Applications`
-3. Add these headers in row 1 (A→M):
-   `id`, `date_applied`, `role`, `company`, `job_type`, `location`, `salary`, `application_url`, `status`, `status_updated_at`, `interview_date`, `notes`, `source`
-4. Create a second sheet named `Email_Log`
-5. Add headers: `timestamp`, `email_subject`, `from`, `matched_company`, `detected_status`, `confidence`, `action_taken`
-
+1. Download the TEMPLATE available in the repo.
+2. Upload the template to your Google Drive.
+3. (Optional) Remove existing rows if needed. Or you can do it after testing. 
+   
 ### Step 2 — Set up Apps Script
 
 1. In your Google Sheet: **Extensions → Apps Script**
