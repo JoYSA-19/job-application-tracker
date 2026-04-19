@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 13px;
+      color: #1a1a1a;
+      background: #fff;
+      width: 360px;  /* wider */
+    }
+
+    .header {
+      background: #1a73e8;
+      color: #fff;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .header-icon {
+      width: 20px; height: 20px;
+      background: rgba(255,255,255,0.25);
+      border-radius: 4px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px;
+    }
+    .header-right { display: flex; flex-direction: column; gap: 1px; }
+    .header h1 { font-size: 14px; font-weight: 500; }
+    .header-model { font-size: 10px; opacity: 0.8; }
+
+    #status-bar {
+      font-size: 11px;
+      padding: 6px 14px;
+      background: #f0f4ff;
+      color: #1a73e8;
+      border-bottom: 1px solid #dde3f5;
+      min-height: 28px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    #status-bar.error   { background: #fff0f0; color: #c62828; border-color: #f5c2c2; }
+    #status-bar.success { background: #f0fff4; color: #1b5e20; border-color: #b2dfcc; }
+    .spinner {
+      width: 11px; height: 11px;
+      border: 2px solid currentColor;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    form { padding: 12px 14px 10px; display: flex; flex-direction: column; gap: 8px; }
+
+    label { display: flex; flex-direction: column; gap: 3px; }
+    label span { font-size: 11px; color: #555; font-weight: 500; text-transform: uppercase; letter-spacing: 0.3px; }
+
+    input, select, textarea {
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      padding: 6px 8px;
+      font-size: 13px;
+      color: #1a1a1a;
+      background: #fff;
+      width: 100%;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    input:focus, select:focus, textarea:focus { border-color: #1a73e8; }
+    textarea { resize: vertical; min-height: 44px; font-family: inherit; }
+
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+    #save-btn {
+      margin-top: 2px;
+      background: #1a73e8;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 9px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    #save-btn:hover:not(:disabled) { background: #1557b0; }
+    #save-btn:disabled { background: #93b8f5; cursor: default; }
+
+    .footer {
+      text-align: center;
+      padding: 8px 14px 10px;
+      font-size: 11px;
+      color: #888;
+      border-top: 1px solid #f0f0f0;
+    }
+    .footer a { color: #1a73e8; cursor: pointer; text-decoration: none; }
+    .footer a:hover { text-decoration: underline; }
+
+    /* Settings panel */
+    #settings-panel {
+      display: none;
+      padding: 12px 14px 14px;
+      flex-direction: column;
+      gap: 10px;
+      border-top: 1px solid #eee;
+      background: #fafafa;
+    }
+    #settings-panel.open { display: flex; }
+    #settings-panel label span { color: #555; }
+
+    .model-badge {
+      display: inline-block;
+      font-size: 10px;
+      padding: 1px 6px;
+      border-radius: 10px;
+      margin-left: 4px;
+      font-weight: 500;
+    }
+    .badge-green  { background: #e6f4ea; color: #1b5e20; }
+    .badge-yellow { background: #fff8e1; color: #e65100; }
+    .badge-gray   { background: #f0f0f0; color: #555; }
+
+    #save-settings-btn {
+      background: #1a73e8; color: #fff; border: none; border-radius: 6px;
+      padding: 8px; font-size: 13px; font-weight: 500; cursor: pointer;
+    }
+    #save-settings-btn:hover { background: #1557b0; }
+
+    /* Paste panel */
+    #paste-panel {
+      display: none;
+      padding: 12px 14px 14px;
+      flex-direction: column;
+      gap: 9px;
+      border-top: 1px solid #eee;
+      background: #fafafa;
+    }
+    #paste-panel.open { display: flex; }
+    #paste-extract-btn {
+      background: #1a73e8; color: #fff; border: none; border-radius: 6px;
+      padding: 8px; font-size: 13px; font-weight: 500; cursor: pointer;
+    }
+    #paste-extract-btn:hover { background: #1557b0; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="header-icon">💼</div>
+    <div class="header-right">
+      <h1>Job Application Tracker</h1>
+      <span class="header-model" id="header-model">Loading model…</span>
+    </div>
+  </div>
+
+  <div id="status-bar">
+    <div class="spinner"></div>
+    <span id="status-text">Reading page…</span>
+  </div>
+
+  <form id="job-form">
+    <label>
+      <span>Role *</span>
+      <input id="role" type="text" placeholder="e.g. Software Engineer" required>
+    </label>
+
+    <label>
+      <span>Company *</span>
+      <input id="company" type="text" placeholder="e.g. Acme Corp" required>
+    </label>
+
+    <div class="row">
+      <label>
+        <span>Job Type</span>
+        <select id="job_type">
+          <option value="full-time">Full-time</option>
+          <option value="part-time">Part-time</option>
+          <option value="intern">Intern</option>
+          <option value="co-op">Co-op</option>
+          <option value="contract">Contract</option>
+          <option value="freelance">Freelance</option>
+          <option value="unknown">Unknown</option>
+        </select>
+      </label>
+
+      <label>
+        <span>Source</span>
+        <select id="source">
+          <option value="LinkedIn">LinkedIn</option>
+          <option value="Company Website">Company Website</option>
+          <option value="Indeed">Indeed</option>
+          <option value="Glassdoor">Glassdoor</option>
+          <option value="Handshake">Handshake</option>
+          <option value="Referral">Referral</option>
+          <option value="Other">Other</option>
+        </select>
+      </label>
+    </div>
+
+    <label>
+      <span>Location</span>
+      <input id="location" type="text" placeholder="e.g. Vancouver, BC or Remote">
+    </label>
+
+    <label>
+      <span>Salary Range</span>
+      <input id="salary" type="text" placeholder="e.g. $90k–$120k">
+    </label>
+
+    <label>
+      <span>Application URL</span>
+      <input id="application_url" type="url">
+    </label>
+
+    <label>
+      <span>Notes</span>
+      <textarea id="notes" placeholder="Anything to remember about this role…"></textarea>
+    </label>
+
+    <div style="display:grid;grid-template-columns:1fr auto;gap:8px">
+      <button type="submit" id="save-btn" disabled>Save Application</button>
+      <button type="button" id="rerun-btn" title="Re-run extraction" style="background:#f1f3f4;color:#444;border:1px solid #d1d5db;border-radius:6px;padding:9px 12px;font-size:13px;cursor:pointer;white-space:nowrap">↺ Re-run</button>
+    </div>
+  </form>
+
+  <div class="footer">
+    <a id="settings-toggle">⚙ Settings</a> · <a id="paste-toggle">📋 Paste mode</a>
+  </div>
+
+  <!-- Settings panel -->
+  <div id="settings-panel">
+    <label>
+      <span>Apps Script Web App URL</span>
+      <input id="script-url" type="url" placeholder="https://script.google.com/macros/s/…/exec">
+    </label>
+
+    <label>
+      <span>AI Model</span>
+      <select id="model-select">
+        <option value="gemini-3.1-flash-lite-preview">⭐ Gemini 3.1 Flash Lite — 500 req/day · Best for heavy days (20-50 apps)</option>
+        <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash Lite — 20 req/day · Good quality, light days</option>
+        <option value="gemini-2.5-flash">Gemini 2.5 Flash — 20 req/day · Highest quality, tricky pages</option>
+      </select>
+    </label>
+
+    <div id="model-quota-hint" style="font-size:11px;color:#555;background:#f0f4ff;padding:8px 10px;border-radius:6px;line-height:1.6"></div>
+
+    <label style="flex-direction:row;align-items:center;gap:8px;cursor:pointer">
+      <input type="checkbox" id="prefetch-toggle" style="width:auto">
+      <span style="text-transform:none;font-size:12px;color:#333;font-weight:400">
+        Auto-extract when job page detected <span style="color:#888">(uses 1 API call per page visited)</span>
+      </span>
+    </label>
+
+    <button id="save-settings-btn">Save Settings</button>
+  </div>
+
+  <!-- Paste mode panel -->
+  <div id="paste-panel">
+    <label style="display:flex;flex-direction:column;gap:3px">
+      <span style="font-size:11px;color:#555;font-weight:500;text-transform:uppercase">Paste job description</span>
+      <textarea id="paste-text" style="min-height:100px;resize:vertical" placeholder="Copy the full job posting and paste it here…"></textarea>
+    </label>
+    <button id="paste-extract-btn">Extract from pasted text</button>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
